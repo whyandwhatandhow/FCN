@@ -5,7 +5,7 @@ from model_and_data import FCN_ResNet        # 你写的模型
 import numpy as np
 from PIL import Image
 import os
-
+from tqdm import tqdm  # pip install tqdm
 NUM_CLASSES = 21  # VOC2012 全类别（含背景）
 
 # --------- 计算 IoU 和 Pixel Acc ---------
@@ -16,7 +16,7 @@ def evaluate(model, dataloader, device):
     conf_matrix = torch.zeros(NUM_CLASSES, NUM_CLASSES, dtype=torch.int64)
 
     with torch.no_grad():
-        for images, targets in dataloader:
+        for images, targets in tqdm(dataloader, desc="Evaluating", unit="batch"):
             images, targets = images.to(device), targets.to(device)
             outputs = model(images)  # [N, 21, H, W]
             preds = outputs.argmax(dim=1)
@@ -52,7 +52,7 @@ def save_predictions(model, dataloader, device, save_dir="predictions"):
 
     model.eval()
     with torch.no_grad():
-        for idx, (images, _) in enumerate(dataloader):
+        for idx, (images, _) in enumerate(tqdm(dataloader, desc="Saving Predictions", unit="batch")):
             images = images.to(device)
             outputs = model(images)
             preds = outputs.argmax(dim=1).cpu().numpy()  # [N, H, W]
@@ -70,12 +70,12 @@ if __name__ == "__main__":
 
     # 加载模型
     model = FCN_ResNet(num_classes=NUM_CLASSES)
-    model.load_state_dict(torch.load("checkpoints/best.pth", map_location=device))
+    model.load_state_dict(torch.load("fcn_resnet_voc.pth", map_location=device))
     model.to(device)
 
     # 加载数据
     val_loader = DataLoader(
-        VOC2012SegLocal(voc2012_dir="VOCdevkit/VOC2012", split="val", resize_size=512),
+        VOC2012SegLocal(voc2012_dir="VOC2012", split="val", resize_size=512),
         batch_size=4,
         shuffle=False,
         num_workers=2
