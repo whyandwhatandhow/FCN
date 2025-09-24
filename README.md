@@ -4,3 +4,8 @@
 
 > 训练数据
 ![img.png](img.png)
+
+
+> 需要自己准备VOC2012数据集
+> 
+> ![img_2.png](img_2.png)
